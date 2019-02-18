@@ -13,7 +13,7 @@ git clone https://github.com/Azure-Samples/azure-voting-app-redis.git
 # docker-compose up: Builds, (re)creates, starts, and attaches to containers for a service.
 # -d is detach mode: runs in the background
 cd azure-voting-app-redis
-docker-compose up -d
+docker-compose up
 
 # list 
 docker images
@@ -42,10 +42,11 @@ az acr login --name aksdemoacr01
 az acr list --resource-group aksdemo-rg --query "[].{acrLoginServer:loginServer}" --output table
 
 # Tag image with ACR Login Server and add version
+# https://docs.docker.com/engine/reference/commandline/tag/
 docker tag azure-vote-front aksdemoacr01.azurecr.io/azure-vote-front:v1
 
 # Push image to registry
-docker push <acrLoginServer>/azure-vote-front:v1
+docker push aksdemoacr01.azurecr.io/azure-vote-front:v1
 
 # See tags for specific image
 az acr repository show-tags --name aksdemoacr01 --repository azure-vote-front --output table
@@ -53,6 +54,7 @@ az acr repository show-tags --name aksdemoacr01 --repository azure-vote-front --
 # Part 3 - Create Kubernetes Cluster
 
 # Create a service principal
+# https://docs.microsoft.com/en-au/azure/aks/kubernetes-service-principal
 az ad sp create-for-rbac --skip-assignment
 
 # Configure ACR authentication
@@ -90,8 +92,8 @@ kubectl get pods
 kubectl scale --replicas=3 deployment/azure-vote-front
 
 # Auto scale pods
-# Pre-requisites Metrics server - comes with AKS 1.10+
-az aks show --resource-group aksdemo-rg --name aksdemoaks001 --query kubernetesVersion
+# Pre-requisites Metrics server - comes with Kubernetes 1.10+
+# az aks show --resource-group aksdemo-rg --name aksdemoaks001 --query kubernetesVersion
 
 # Autoscale pods based on cpu utilisation
 kubectl autoscale deployment azure-vote-front --cpu-percent=50 --min=3 --max=10
